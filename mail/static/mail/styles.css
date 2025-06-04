@@ -1,3 +1,34 @@
 textarea {
     min-height: 400px;
 }
+
+.mail-div {
+    padding: 5px;
+    border: 1px solid black;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.mail-div.unread {
+    background-color: white;        
+    color: black;                   
+}
+
+.mail-div.read {
+    background-color: #f0f0f0;     
+    color: #555;                   
+}
+
+.mail-div:hover {
+    background-color: rgb(180, 180, 173);
+    cursor: pointer;
+}
+.mail-div .mail-subject{
+    flex: 1;
+    margin-left: 7px;
+}
+.mail-div .mail-timestamp {
+    color: rgb(45, 79, 108);
+    font-size: small;
+}
+
