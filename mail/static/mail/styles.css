@@ -9,26 +9,28 @@ textarea {
     justify-content: space-between;
     align-items: center;
 }
+
 .mail-div.unread {
-    background-color: white;        
-    color: black;                   
+    background-color: white;
+    color: black;
 }
 
 .mail-div.read {
-    background-color: #f0f0f0;     
-    color: #555;                   
+    background-color: #f0f0f0;
+    color: #555;
 }
 
 .mail-div:hover {
     background-color: rgb(180, 180, 173);
     cursor: pointer;
 }
-.mail-div .mail-subject{
+
+.mail-div .mail-subject {
     flex: 1;
     margin-left: 7px;
 }
+
 .mail-div .mail-timestamp {
     color: rgb(45, 79, 108);
     font-size: small;
 }
-

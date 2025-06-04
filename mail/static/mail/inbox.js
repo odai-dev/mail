@@ -104,20 +104,20 @@ function load_mailbox(mailbox) {
 
               // Back button to recursively call the load_mailbox function 
               const backBtn = document.querySelector(".back-btn").addEventListener('click', () => {
-              load_mailbox(mailbox);
-          })
+                load_mailbox(mailbox);
+              })
             })
-          
+
           // Set the email read value to true 
           fetch(`/emails/${email.id}`, {
-            method : 'PUT',
+            method: 'PUT',
             body: JSON.stringify({
               read: true
             })
           })
-          
-          
-            
+
+
+
         });
       }
     });
