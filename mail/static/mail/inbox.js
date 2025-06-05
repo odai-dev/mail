@@ -89,12 +89,12 @@ function load_mailbox(mailbox) {
 
           const fullMail = document.createElement("div");
           fullMail.classList.add("full-mail")
-    
+
           let archiveBtnHtml = "";
           let replyBtnHtml = "";
           if (mailbox !== "sent") {
             archiveBtnHtml = `<button class="archive-btn btn btn-sm btn-outline-primary">${archive}</button>`
-            replyBtnHtml = `<button class="btn btn-sm btn-outline-primary">Reply</button>`;
+            replyBtnHtml = `<button class="reply-btn btn btn-sm btn-outline-primary">Reply</button>`;
           }
 
 
@@ -112,7 +112,7 @@ function load_mailbox(mailbox) {
                                     <p><strong>Subject: </strong>${email.subject}</p>
                                     ${replyBtnHtml}
                                     <hr>
-                                    ${email.subject}`
+                                    ${email.body}`
               document.querySelector("#mail-container").append(fullMail)
 
               // Back button to recursively call the load_mailbox function 
@@ -120,7 +120,9 @@ function load_mailbox(mailbox) {
                 load_mailbox(mailbox);
               })
 
+              // Check if the user is not in the sent mailbox
               if (mailbox !== "sent") {
+                // Archive and Unarchive emails and then load_mailbox
                 const archiveBtn = document.querySelector(".archive-btn").addEventListener('click', () => {
                   fetch(`/emails/${email.id}`, {
                     method: 'PUT',
@@ -130,6 +132,18 @@ function load_mailbox(mailbox) {
                       load_mailbox(mailbox)
                     })
                 })
+
+                // Let the User replay to the email
+                const replyBtn = document.querySelector(".reply-btn").addEventListener('click', () => {
+                  fullMail.style.display = "none";
+                  compose_email();
+                  console.log(typeof(email.subject))
+                  // Clear out composition fields
+                  document.querySelector('#compose-recipients').value = email.sender;
+                  document.querySelector('#compose-subject').value = email.subject.startsWith("Re:") ? email.subject : `Re: ${email.subject}`;
+                  document.querySelector('#compose-body').value = `On ${email.timestamp}, ${email.sender} wrote:\n${email.body}`;
+                })
+
               }
 
             })
