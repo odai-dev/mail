@@ -82,30 +82,56 @@ function load_mailbox(mailbox) {
           mailDiv.classList.toggle("unread")
         }
 
+        let archive = "Archive";
         // Open the full email when it's div is clicked
         mailDiv.addEventListener('click', () => {
           document.querySelector("#emails-view").style.display = 'none';
 
           const fullMail = document.createElement("div");
           fullMail.classList.add("full-mail")
+    
+          let archiveBtnHtml = "";
+          let replyBtnHtml = "";
+          if (mailbox !== "sent") {
+            archiveBtnHtml = `<button class="archive-btn btn btn-sm btn-outline-primary">${archive}</button>`
+            replyBtnHtml = `<button class="btn btn-sm btn-outline-primary">Reply</button>`;
+          }
+
 
           fetch(`/emails/${email.id}`)
             .then(response => response.json())
             .then(email => {
+              if (email.archived) {
+                archive = "Unarchive"
+              }
               console.log(email)
               fullMail.innerHTML = `<button class="back-btn btn btn-sm btn-outline-primary">Back</button>
-                                <p><strong>From: </strong> ${email.sender}</p>
-                                <p><strong>To: </strong> ${email.recipients}</p>
-                                <p><strong>Subject: </strong>${email.subject}</p>
-                                <button class="btn btn-sm btn-outline-primary">Reply</button>
-                                <hr>
-                                ${email.subject}`
+                                    ${archiveBtnHtml}
+                                    <p><strong>From: </strong> ${email.sender}</p>
+                                    <p><strong>To: </strong> ${email.recipients}</p>
+                                    <p><strong>Subject: </strong>${email.subject}</p>
+                                    ${replyBtnHtml}
+                                    <hr>
+                                    ${email.subject}`
               document.querySelector("#mail-container").append(fullMail)
 
               // Back button to recursively call the load_mailbox function 
               const backBtn = document.querySelector(".back-btn").addEventListener('click', () => {
                 load_mailbox(mailbox);
               })
+
+              if (mailbox !== "sent") {
+                const archiveBtn = document.querySelector(".archive-btn").addEventListener('click', () => {
+                  fetch(`/emails/${email.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ archived: !email.archived })
+                  })
+                    .then(() => {
+                      load_mailbox(mailbox)
+                    })
+                })
+              }
+
             })
 
           // Set the email read value to true 
@@ -115,9 +141,6 @@ function load_mailbox(mailbox) {
               read: true
             })
           })
-
-
-
         });
       }
     });
