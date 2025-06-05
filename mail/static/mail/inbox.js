@@ -64,97 +64,88 @@ function load_mailbox(mailbox) {
   fetch(`/emails/${mailbox}`)
     .then(response => response.json())
     .then(emails => {
-      for (let email of emails) {
-        console.log(email)
+       for (let email of emails) {
         const mailDiv = document.createElement("div");
         mailDiv.className = "mail-div";
         mailDiv.innerHTML = `
-            <strong class="mail-sender">${email.sender}</strong>
-            <span class="mail-subject">${email.subject}</span>
-            <span class="mail-timestamp">${email.timestamp}</span>
+          <strong class="mail-sender">${email.sender}</strong>
+          <span class="mail-subject">${email.subject}</span>
+          <span class="mail-timestamp">${email.timestamp}</span>
         `;
         document.querySelector("#emails-view").append(mailDiv);
 
-        // Change the mailDiv coloring style based on read status
-        if (email.read === true) {
-          mailDiv.classList.toggle("read");
-        } else {
-          mailDiv.classList.toggle("unread")
-        }
+        // Styling based on read status
+        mailDiv.classList.add(email.read ? "read" : "unread");
 
-        let archive = "Archive";
-        // Open the full email when it's div is clicked
+        // On click: show full email
         mailDiv.addEventListener('click', () => {
-          document.querySelector("#emails-view").style.display = 'none';
+          document.querySelector('#emails-view').style.display = 'none';
 
           const fullMail = document.createElement("div");
-          fullMail.classList.add("full-mail")
+          fullMail.classList.add("full-mail");
 
-          let archiveBtnHtml = "";
-          let replyBtnHtml = "";
-          if (mailbox !== "sent") {
-            archiveBtnHtml = `<button class="archive-btn btn btn-sm btn-outline-primary">${archive}</button>`
-            replyBtnHtml = `<button class="reply-btn btn btn-sm btn-outline-primary">Reply</button>`;
-          }
-
-
+          // Fetch full email
           fetch(`/emails/${email.id}`)
             .then(response => response.json())
             .then(email => {
-              if (email.archived) {
-                archive = "Unarchive"
-              }
-              console.log(email)
-              fullMail.innerHTML = `<button class="back-btn btn btn-sm btn-outline-primary">Back</button>
-                                    ${archiveBtnHtml}
-                                    <p><strong>From: </strong> ${email.sender}</p>
-                                    <p><strong>To: </strong> ${email.recipients}</p>
-                                    <p><strong>Subject: </strong>${email.subject}</p>
-                                    ${replyBtnHtml}
-                                    <hr>
-                                    ${email.body}`
-              document.querySelector("#mail-container").append(fullMail)
+              let archiveLabel = email.archived ? "Unarchive" : "Archive";
+              let archiveBtnHtml = "";
+              let replyBtnHtml = "";
 
-              // Back button to recursively call the load_mailbox function 
-              const backBtn = document.querySelector(".back-btn").addEventListener('click', () => {
-                load_mailbox(mailbox);
-              })
-
-              // Check if the user is not in the sent mailbox
               if (mailbox !== "sent") {
-                // Archive and Unarchive emails and then load_mailbox
-                const archiveBtn = document.querySelector(".archive-btn").addEventListener('click', () => {
+                archiveBtnHtml = `<button class="archive-btn btn btn-sm btn-outline-primary">${archiveLabel}</button>`;
+                replyBtnHtml = `<button class="reply-btn btn btn-sm btn-outline-primary">Reply</button>`;
+              }
+
+              fullMail.innerHTML = `
+                <button class="back-btn btn btn-sm btn-outline-primary">Back</button>
+                ${archiveBtnHtml}
+                <p><strong>From:</strong> ${email.sender}</p>
+                <p><strong>To:</strong> ${email.recipients}</p>
+                <p><strong>Subject:</strong> ${email.subject}</p>
+                ${replyBtnHtml}
+                <hr>
+                ${email.body}
+              `;
+
+              document.querySelector("#mail-container").append(fullMail);
+
+              // Mark email as read
+              fetch(`/emails/${email.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ read: true })
+              });
+
+              // Back button
+              document.querySelector(".back-btn").addEventListener('click', () => {
+                load_mailbox(mailbox);
+              });
+
+              // Archive/Unarchive
+              if (mailbox !== "sent") {
+                document.querySelector(".archive-btn").addEventListener('click', () => {
                   fetch(`/emails/${email.id}`, {
                     method: 'PUT',
                     body: JSON.stringify({ archived: !email.archived })
                   })
                     .then(() => {
-                      load_mailbox(mailbox)
-                    })
-                })
+                      load_mailbox('inbox');
+                    });
+                });
 
-                // Let the User replay to the email
-                const replyBtn = document.querySelector(".reply-btn").addEventListener('click', () => {
+                // Reply button
+                document.querySelector(".reply-btn").addEventListener('click', () => {
                   fullMail.style.display = "none";
                   compose_email();
-                  console.log(typeof(email.subject))
-                  // Clear out composition fields
+
                   document.querySelector('#compose-recipients').value = email.sender;
-                  document.querySelector('#compose-subject').value = email.subject.startsWith("Re:") ? email.subject : `Re: ${email.subject}`;
-                  document.querySelector('#compose-body').value = `On ${email.timestamp}, ${email.sender} wrote:\n${email.body}`;
-                })
-
+                  document.querySelector('#compose-subject').value =
+                    email.subject.startsWith("Re:") ? email.subject : `Re: ${email.subject}`;
+                  document.querySelector('#compose-body').value =
+                    `On ${email.timestamp}, ${email.sender} wrote:\n${email.body}`;
+                });
               }
-
-            })
-
-          // Set the email read value to true 
-          fetch(`/emails/${email.id}`, {
-            method: 'PUT',
-            body: JSON.stringify({
-              read: true
-            })
-          })
+            });
         });
       }
     });
